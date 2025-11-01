@@ -164,7 +164,17 @@ def start(self):
     register_protocol(DEEP_THOUGHT_PROTOCOL)
 ```
 
-`run_foreground` is what gets called when your App is running in the foreground (is allowed to interact with the keyboard and display). It will be called repeatedly in a loop until you call `self.switch_to_background()`. Between each call, `self.foreground_sleep_ms` will delay the next call of `run_foreground()` by that many milliseconds. It is very important that `run_foreground()` does not block. If you want to wait for a button press or a delay, you can grab the time and wait until enough time has passed to do the next action. If you want to read keys or draw to the display, this is where to do it. Nothing will stop you from doing so from other functions, but it will interfere for whatever app is in the foreground, so please don't. Check out the demo apps in `apps/` to see examples of what you can do in here.
+`run_foreground` is what gets called when your App is running in the foreground
+(is allowed to interact with the keyboard and display). It will be called
+repeatedly in a loop until you call `self.switch_to_background()`. Between each
+call, `self.foreground_sleep_ms` will delay the next call of `run_foreground()`
+by that many milliseconds. It is very important that `run_foreground()` does
+not block. If you want to wait for a button press or a delay, you can grab the
+time and wait until enough time has passed to do the next action. If you want
+to read keys or draw to the display, this is where to do it. Nothing will stop
+you from doing so from other functions, but it will interfere for whatever app
+is in the foreground, so please don't. Check out the demo apps in `apps/` to
+see examples of what you can do in here.
 ```python
 def run_foreground(self):
     if self.badge.keyboard.f1():
@@ -180,13 +190,27 @@ def run_foreground(self):
         self.switch_to_background()
 ```
 
-`run_background` is what gets called when your App is running in the background (is not allowed to interact with the keyboard and display). It will be called repeatedly in a loop until the AppMenu calls `switch_to_foreground()` on your App class. Between each call, `self.background_sleep_ms` will delay the next call of `run_background()` by that many milliseconds. It is very important that `run_background()` does not block. It is also important that it does not draw to the screen or try to read from the keyboard, for it will interfere with the current app running `run_foreground()`. However, in the background you can still send messages to the network stack and other badges.
+`run_background` is what gets called when your App is running in the background
+(is not allowed to interact with the keyboard and display). It will be called
+repeatedly in a loop until the AppMenu calls `switch_to_foreground()` on your
+App class. Between each call, `self.background_sleep_ms` will delay the next
+call of `run_background()` by that many milliseconds. It is very important that
+`run_background()` does not block. It is also important that it does not draw
+to the screen or try to read from the keyboard, for it will interfere with the
+current app running `run_foreground()`. However, in the background you can
+still send messages to the network stack and other badges.
 ```python
 def run_background(self):
     self.send_message()
 ```
 
-`switch_to_foreground` is used to transition your App from the background to the foreground. It will be called once during the transition between states, and only should be called by the `AppMenu`. You should not call it yourself. This is where it is recommended to set up a `Page` and other elements drawn to the screen that only need to be done once. It is important to call `super().switch_to_foreground()`, which handles the important state transition logic.
+`switch_to_foreground` is used to transition your App from the background to
+the foreground. It will be called once during the transition between states,
+and only should be called by the `AppMenu`. You should not call it yourself.
+This is where it is recommended to set up a `Page` and other elements drawn to
+the screen that only need to be done once. It is important to call
+`super().switch_to_foreground()`, which handles the important state transition
+logic.
 ```python
 def switch_to_foreground(self):
     super().switch_to_foreground()
@@ -202,7 +226,18 @@ def switch_to_foreground(self):
     self.page.replace_screen()
 ```
 
-`switch_to_background` is used to transition your App from the foreground to the background. It will be called once during the transition between states, and should be called at some point in `run_foreground()` when the App should transition. It is up to your app to call `switch_to_background()` if you don't want the badge to be stuck in it until you reboot. If you create a `Page` or other LVGL elements to display on the display, it is recommended to delete those objects or set them to `None` so they can be cleaned up and garbage collected. Trying to use those LVGL objects later often causes issues (LVGL will clean up objects even if you haven't) and thus it is recommended to clean up when switching to the background. It is important to call `super().switch_to_background()`, which handles the important state transition logic.
+`switch_to_background` is used to transition your App from the foreground to
+the background. It will be called once during the transition between states,
+and should be called at some point in `run_foreground()` when the App should
+transition. It is up to your app to call `switch_to_background()` if you don't
+want the badge to be stuck in it until you reboot. If you create a `Page` or
+other LVGL elements to display on the display, it is recommended to delete
+those objects or set them to `None` so they can be cleaned up and garbage
+collected. Trying to use those LVGL objects later often causes issues (LVGL
+will clean up objects even if you haven't) and thus it is recommended to clean
+up when switching to the background. It is important to call
+`super().switch_to_background()`, which handles the important state transition
+logic.
 ```python
 def switch_to_background(self):
   super().switch_to_background()
@@ -211,25 +246,39 @@ def switch_to_background(self):
 
 ### Using LVGL
 
-`LVGL` is a graphics library for embedded applications. We are using a port in Micropython to enable running it on the badge. The documentation is not great, and it is easy to encounter memory errors. However, if you're careful, you have a lot of flexibility creating detailed and beautiful graphics.
+`LVGL` is a graphics library for embedded applications. We are using a port in
+Micropython to enable running it on the badge. The documentation is not great,
+and it is easy to encounter memory errors. However, if you're careful, you have
+a lot of flexibility creating detailed and beautiful graphics.
 
 # Badge Firmware Development
 
 ## Installing an Editor
 
-It is recommended to have a modern Integrated Development Environment (IDE) for working on Python and Micropython code. A modern IDE will have tools such as syntax highlighting, identifying potential errors, auto-formatting, and other integrations.
+It is recommended to have a modern Integrated Development Environment (IDE) for
+working on Python and Micropython code. A modern IDE will have tools such as
+syntax highlighting, identifying potential errors, auto-formatting, and other
+integrations.
 
 ### Beginner: Thonny
 
-Thonny is a easy to use Python editor, that comes built in with tools to connect to an ESP32 running Micropython and enable you to easily edit files directly on the badge.
+Thonny is a easy to use Python editor, that comes built in with tools to
+connect to an ESP32 running Micropython and enable you to easily edit files
+directly on the badge.
 
 ### Advanced: VS Code
 
-VS Code (Visual Studio) is a development environment with a ton of flexibility and extensions for working in almost any programming langauge. After installing, it is recommended to install extensions `Python` and `Serial Monitor`.
+VS Code (Visual Studio) is a development environment with a ton of flexibility
+and extensions for working in almost any programming langauge. After
+installing, it is recommended to install extensions `Python` and `Serial
+Monitor`.
 
 ## Setting up your computer
 
-These steps are only required if you want to be able to update the entire badge at once. If you only want to modify files already flashed to your badge, you can use `Thonny` (described above) to modify files on the badge without needing them on your computer.
+These steps are only required if you want to be able to update the entire badge
+at once. If you only want to modify files already flashed to your badge, you
+can use `Thonny` (described above) to modify files on the badge without needing
+them on your computer.
 
 ## Setting up the repository
 
@@ -278,7 +327,9 @@ mpremote cp -r badge/* :
 mpremote cp -r : badge-backup/
 ```
 
-There's also a helper script to selectively copy files. `scripts/update.py` will also delete files off the badge that have been removed from your computer, enforcing a more consistent state.
+There's also a helper script to selectively copy files. `scripts/update.py`
+will also delete files off the badge that have been removed from your computer,
+enforcing a more consistent state.
 ```bash
 # Copy all the files to the badge and reset it automatically after the copy.
 scripts/update.py --reset push
@@ -289,9 +340,15 @@ scripts/update.py pull
 
 ## Developing new Apps and Protocols
 
-To make a new App, start by copying `apps/template_app.py` and giving the copy a new name. You will also want to rename the class inside it. Read the docstrings for the included methods, and refer to the above guide for how to use each method. Methods you don't need to customize the behavior of can be deleted from your file.
+To make a new App, start by copying `apps/template_app.py` and giving the copy
+a new name. You will also want to rename the class inside it. Read the
+docstrings for the included methods, and refer to the above guide for how to
+use each method. Methods you don't need to customize the behavior of can be
+deleted from your file.
 
-After creating a new App file, you will need to import it and load it into the `AppMenu`. Lets say your file is named `my_app.py` and the class inside is named `MyApp`. Open `main.py`:
+After creating a new App file, you will need to import it and load it into the
+`AppMenu`. Lets say your file is named `my_app.py` and the class inside is
+named `MyApp`. Open `main.py`:
 ```python
 # Add the import inside the try:
 try:
@@ -302,7 +359,10 @@ except Exception as ex:
     # Exception handling here
 ```
 
-Construct your app, and add it into the `user_apps` menu list. The first argument should be a short string to name the App, and will be how it appears in the `AppMenu` above the Function key. The second argument must be `badge`, so your app will have easy access to the `Badge`.
+Construct your app, and add it into the `user_apps` menu list. The first
+argument should be a short string to name the App, and will be how it appears
+in the `AppMenu` above the Function key. The second argument must be `badge`,
+so your app will have easy access to the `Badge`.
 ```python
 users_apps = [
     my_app.MyApp("My App", badge),
@@ -312,7 +372,13 @@ users_apps = [
 
 ## REPL and debugging on the badge
 
-While the badge is running, you can connect to it via a serial terminal and monitor the prints to understand what is happening under the hood. If you want to access the Micropython `REPL` (Read Execute Print Loop), you can try pressing `Ctrl+C` or `Ctrl+D` once to interrupt the running program. This will drop you to a Python prompt `>>>`, where you can run any Micropython command. If you want to access the `Badge` object to get access to the hardware devices, you can create get to it as the `badge_obj` object via:
+While the badge is running, you can connect to it via a serial terminal and
+monitor the prints to understand what is happening under the hood. If you want
+to access the Micropython `REPL` (Read Execute Print Loop), you can try
+pressing `Ctrl+C` or `Ctrl+D` once to interrupt the running program. This will
+drop you to a Python prompt `>>>`, where you can run any Micropython command.
+If you want to access the `Badge` object to get access to the hardware devices,
+you can create get to it as the `badge_obj` object via:
 ```python
 >>> from hardware.badge import badge_obj
 ```
